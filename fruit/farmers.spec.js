@@ -9,7 +9,7 @@ describe('farmers', function() {
     })
   })
 
-  it('calculateFruitPower should get correct result', function() {
+  it('calculateTotalFarmerFruitCost should get correct result', function() {
     var ret = farmers.calculateTotalFarmerFruitCost().then(function(result) {
       result.should.equal(4321)
     })
