@@ -25,8 +25,22 @@ var getCostOfSingleFruit = lib.getCostOfSingleFruit
 // Calculate the number of units of fruits owned by all farmers (whether
 // retired or not) using getFarmers and getCropsProducedByFarmer.
 exports.countNumberOfFruits = function() {
-  // TODO: replace this with your code
-  return Promise.resolve(0)
+  return Promise.all(getFarmers())
+  .then(function(farmers){
+    // Return promise for array of crop data of all farmers
+    return Promise.all(farmers.map(function(farmer){
+      return getCropsProducedByFarmer(farmer.name)
+    }))
+  })
+  .then(function(cropData){
+    // Based on the array of crop data, flattens the array and calculate sum
+    return Promise.resolve(
+      _.chain(cropData)
+      .flatten()
+      .sumBy('units')
+      .value()
+    )
+  })
 }
 
 // Calculate the cost of all non-retired farmers' fruits using the functions
@@ -35,6 +49,38 @@ exports.countNumberOfFruits = function() {
 // of their fruits, which is the cost of a single fruit times the number of units
 // they have produced.
 exports.calculateTotalFarmerFruitCost = function() {
-  // TODO: replace this with your code
-  return Promise.resolve(0)
+  return Promise.all(getFarmers())
+  .then(function(farmers){
+    // Return promise for crop data of all un-retired farmers
+    return Promise.all(
+      _.chain(farmers)
+      .filter(function(farmer){
+        return !farmer.retired
+      })
+      .map(function(farmer){
+        return getCropsProducedByFarmer(farmer.name)
+      })
+      .value()
+    )
+  })
+  .then(function(cropData){
+    return Promise.all(
+      _.chain(cropData)
+      .flatten()
+      .map(function(cropDataRow){
+        // For each crop record, calculate units*price
+        return getCostOfSingleFruit(cropDataRow.type)
+          .then(function(price){
+            return Promise.resolve(price * cropDataRow.units)
+          })
+      })
+      .value()
+    )
+  })
+  .then(function(priceArray){
+    // priceArray has total price for each fruit. Return sum of this array
+    return Promise.resolve(
+      _.sum(priceArray)
+    )
+  })
 }
